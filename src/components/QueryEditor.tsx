@@ -1,43 +1,79 @@
-import React, { ChangeEvent } from 'react';
-import { InlineField, Input } from '@grafana/ui';
+import defaults from 'lodash/defaults';
+
+import React, { ChangeEvent, PureComponent } from 'react';
+import { LegacyForms } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../datasource';
-import { MyDataSourceOptions, MyQuery } from '../types';
-// import { defaults } from 'lodash';
+import { defaultQuery, MyDataSourceOptions, MyQuery } from '../types';
+
+const { FormField } = LegacyForms;
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
-export function QueryEditor({ query, onChange, onRunQuery }: Props) {
-  const onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
+export class QueryEditor extends PureComponent<Props> {
+  onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { onChange, query } = this.props;
     onChange({ ...query, queryText: event.target.value });
   };
 
-  const onConstantChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange({ ...query, constant: parseFloat(event.target.value) });
+  onServerChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { onChange, query, onRunQuery } = this.props;
+    onChange({ ...query, server: event.target.value });
+    // executes the query
+    onRunQuery();
+  };
+  onCapacityChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { onChange, query, onRunQuery } = this.props;
+    onChange({ ...query, capacity: parseInt(event.target.value, 10) });
+    // executes the query
+    onRunQuery();
+  };
+  onTimeoutChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { onChange, query, onRunQuery } = this.props;
+    onChange({ ...query, timeoutS: parseInt(event.target.value, 10) });
     // executes the query
     onRunQuery();
   };
 
-  const onFrequencyChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange({ ...query, frequency: parseFloat(event.target.value) });
-    // executes the query
-    onRunQuery();
-  };
+  render() {
+    const query = defaults(this.props.query, defaultQuery);
+    const { server, capacity, timeoutS } = query;
 
-  // const query = defaults(this.props.query, DEFAULT_QUERY);
-  const { queryText, constant, frequency } = query;
-
-  return (
-    <div className="gf-form">
-      <InlineField label="Constant">
-        <Input onChange={onConstantChange} value={constant} width={8} type="number" step="0.1" />
-      </InlineField>
-      <InlineField label="Frequency">
-        <Input onChange={onFrequencyChange} value={frequency} width={8} type="number" step="1" />
-      </InlineField>
-      <InlineField label="Query Text" labelWidth={16} tooltip="Not used yet">
-        <Input onChange={onQueryTextChange} value={queryText || ''} />
-      </InlineField>
-    </div>
-  );
+    return (
+      <div className="gf-form-group">
+        <div className="gf-form">
+          <FormField
+            labelWidth={10}
+            inputWidth={10}
+            value={server}
+            onChange={this.onServerChange}
+            label="Server"
+            tooltip="If not used the default server is used. Format: ws://SERVER:PORT"
+          />
+        </div>
+        <div className="gf-form">
+          <FormField
+            label="Capacity"
+            tooltip="Max. values"
+            labelWidth={10}
+            inputWidth={10}
+            onChange={this.onCapacityChange}
+            value={capacity}
+            type="number"
+          />
+        </div>
+        <div className="gf-form">
+          <FormField
+            label="Server Timeout (seconds)"
+            labelWidth={13}
+            inputWidth={7}
+            tooltip="Enter 0 for no ping check"
+            value={timeoutS}
+            onChange={this.onTimeoutChange}
+            type="number"
+          />
+        </div>
+      </div>
+    );
+  }
 }

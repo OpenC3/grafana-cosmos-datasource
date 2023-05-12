@@ -4,6 +4,7 @@
   "name": "COSMOS",
   "id": "openc3-cosmos-datasource",
   "metrics": true,
+  "streaming": true,
   "info": {
     "description": "Grafana datasource plugin for COSMOS",
     "author": {
