@@ -16,33 +16,34 @@ import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
 import * as ActionCable from '@rails/actioncable';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
-  subscription: any;
   cable: any;
+  url: string;
+  scope: string;
+  password: string;
 
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
-    console.log(instanceSettings);
-    this.cable = ActionCable.createConsumer(
-      `ws:${instanceSettings.jsonData.url}/openc3-api/cable?scope=` +
-        instanceSettings.jsonData.scope +
-        '&authorization=' +
-        instanceSettings.jsonData.password
-    );
+    this.url = instanceSettings.jsonData.url;
+    this.scope = instanceSettings.jsonData.scope;
+    this.password = instanceSettings.jsonData.password;
   }
 
   query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
     const observables = options.targets.map((target) => {
       const query = defaults(target, defaultQuery);
       return new Observable<DataQueryResponse>((subscriber) => {
-        query.timeoutS = parseFloat(getTemplateSrv().replace(query.timeoutS.toString(), options.scopedVars));
-        query.server = getTemplateSrv().replace(query.server, options.scopedVars);
+        this.cable = ActionCable.createConsumer(
+          `ws:${this.url}/openc3-api/cable?scope=${this.scope}
+            &authorization=${this.password}`
+        );
+
         query.capacity = parseFloat(getTemplateSrv().replace(query.capacity.toString(), options.scopedVars));
         const frame = new CircularDataFrame({
           append: 'tail',
           capacity: query.capacity || 1000,
         });
 
-        let startTemp = new Date('2023/05/12' + ' ' + '16:35:00');
+        let startTemp = new Date('2023/05/12' + ' ' + '18:10:00');
         // let endTemp = new Date('2023/05/12' + ' ' + '16:05:00');
         let key = `DECOM__TLM__INST__HEALTH_STATUS__TEMP1__CONVERTED`;
         let items: string[][] = [];
@@ -55,7 +56,6 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
               frame.addField({ name: 'time', type: FieldType.time });
               frame.addField({ name: 'TEMP1', type: FieldType.number });
 
-              console.log('connected');
               subscription.perform('add', {
                 scope: 'DEFAULT',
                 token: 'password',

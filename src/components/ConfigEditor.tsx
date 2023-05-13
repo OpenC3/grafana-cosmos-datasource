@@ -7,6 +7,7 @@ interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions> 
 
 export function ConfigEditor(props: Props) {
   const { onOptionsChange, options } = props;
+
   const onUrlChange = (event: ChangeEvent<HTMLInputElement>) => {
     const jsonData = {
       ...options.jsonData,
@@ -24,13 +25,18 @@ export function ConfigEditor(props: Props) {
   };
 
   const onPasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onOptionsChange({
-      ...options,
-      jsonData: {
-        ...options.jsonData,
-        password: event.target.value,
-      },
-    });
+    const jsonData = {
+      ...options.jsonData,
+      password: event.target.value,
+    };
+    onOptionsChange({ ...options, jsonData });
+    // onOptionsChange({
+    //   ...options,
+    //   jsonData: {
+    //     ...options.jsonData,
+    //     password: event.target.value,
+    //   },
+    // });
   };
 
   const onPasswordReset = () => {
