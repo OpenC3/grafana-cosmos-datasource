@@ -16,17 +16,17 @@ import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
 import * as ActionCable from '@rails/actioncable';
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
-  serverURL: string;
   subscription: any;
   cable: any;
 
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
-    this.serverURL = instanceSettings.jsonData.url || 'ws://localhost:2900';
-    let scope = 'DEFAULT';
-    let auth = 'password';
+    console.log(instanceSettings);
     this.cable = ActionCable.createConsumer(
-      'ws:localhost:2900/openc3-api/cable?scope=' + scope + '&authorization=' + auth
+      `ws:${instanceSettings.jsonData.url}/openc3-api/cable?scope=` +
+        instanceSettings.jsonData.scope +
+        '&authorization=' +
+        instanceSettings.jsonData.password
     );
   }
 
