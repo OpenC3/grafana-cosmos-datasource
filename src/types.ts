@@ -4,12 +4,12 @@ export interface MyQuery extends DataQuery {
   queryText?: string;
   server?: string;
   capacity: number;
-  timeoutS: number;
+  item: string;
 }
 
 export const defaultQuery: Partial<MyQuery> = {
-  capacity: 1000,
-  timeoutS: 30,
+  capacity: 3600,
+  item: '',
 };
 
 /**

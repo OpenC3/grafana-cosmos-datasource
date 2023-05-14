@@ -30,13 +30,6 @@ export function ConfigEditor(props: Props) {
       password: event.target.value,
     };
     onOptionsChange({ ...options, jsonData });
-    // onOptionsChange({
-    //   ...options,
-    //   jsonData: {
-    //     ...options.jsonData,
-    //     password: event.target.value,
-    //   },
-    // });
   };
 
   const onPasswordReset = () => {

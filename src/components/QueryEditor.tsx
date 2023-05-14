@@ -1,9 +1,9 @@
-// import defaults from 'lodash/defaults';
+import defaults from 'lodash/defaults';
 import React, { ChangeEvent } from 'react';
 import { InlineField, Input } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../datasource';
-import { MyDataSourceOptions, MyQuery } from '../types';
+import { MyDataSourceOptions, MyQuery, defaultQuery } from '../types';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
@@ -14,12 +14,22 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
     onRunQuery();
   };
 
-  const { capacity } = query;
+  const onItemChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange({ ...query, item: event.target.value });
+    // executes the query
+    onRunQuery();
+  };
+
+  query = defaults(query, defaultQuery);
+  const { capacity, item } = query;
 
   return (
     <div className="gf-form">
       <InlineField label="Capacity">
         <Input onChange={onCapacityChange} value={capacity} width={8} type="number" step="100" />
+      </InlineField>
+      <InlineField label="Item">
+        <Input onChange={onItemChange} value={item} width={30} type="string" />
       </InlineField>
     </div>
   );
