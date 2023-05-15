@@ -1,4 +1,18 @@
-import defaults from 'lodash/defaults';
+// Copyright 2023 OpenC3, Inc.
+// All Rights Reserved.
+//
+// This program is free software; you can modify and/or redistribute it
+// under the terms of the GNU Affero General Public License
+// as published by the Free Software Foundation; version 3 with
+// attribution addendums as found in the LICENSE.txt
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+
+// This file may also be used under the terms of a commercial license
+// if purchased from OpenC3, Inc.
 
 import {
   DataQueryRequest,
@@ -9,51 +23,51 @@ import {
   FieldType,
   LoadingState,
 } from '@grafana/data';
-import { getTemplateSrv } from '@grafana/runtime';
 import { Observable, merge } from 'rxjs';
 
-import { MyQuery, MyDataSourceOptions, defaultQuery } from './types';
+import { CosmosQuery, CosmosDataSourceOptions } from './types';
 import * as ActionCable from '@rails/actioncable';
+import axios from 'axios';
 
-export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
+// Some ideas borrowed from https://github.com/HadesArchitect/GrafanaCassandraDatasource
+export class CosmosDataSource extends DataSourceApi<CosmosQuery, CosmosDataSourceOptions> {
   cable: any;
   url: string;
   scope: string;
   password: string;
 
-  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
+  constructor(instanceSettings: DataSourceInstanceSettings<CosmosDataSourceOptions>) {
     super(instanceSettings);
     this.url = instanceSettings.jsonData.url;
     this.scope = instanceSettings.jsonData.scope;
     this.password = instanceSettings.jsonData.password;
   }
 
-  query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
-    // console.log(options);
-    // console.log(options.range.from.utc());
-    // console.log(options.range.to.utc());
+  query(options: DataQueryRequest<CosmosQuery>): Observable<DataQueryResponse> {
     const observables = options.targets.map((target) => {
-      const query = defaults(target, defaultQuery);
       return new Observable<DataQueryResponse>((subscriber) => {
         this.cable = ActionCable.createConsumer(
           `ws:${this.url}/openc3-api/cable?scope=${this.scope}
             &authorization=${this.password}`
         );
 
+        console.log(options.range);
+        console.log();
         const frame = new CircularDataFrame({
           append: 'tail',
-          capacity: query.capacity || 3600,
+          capacity: Number(options.range.to.format('x')) - Number(options.range.from.format('x')) / 1000,
         });
-        let item = query.item.split(' ').join('__');
-        console.log(item);
 
-        let key = `DECOM__TLM__${item}__CONVERTED`;
-        let items: string[][] = [];
-        items.push([key, '0']);
+        let subscriptionItems: string[][] = [];
+        target.items.forEach((item: string, i: number) => {
+          let key = `DECOM__TLM__${item}__CONVERTED`;
+          subscriptionItems.push([key, i.toString()]);
+        });
+
         let endTime: any = null;
         let state = LoadingState.Streaming;
         if (options.liveStreaming === false) {
-          endTime = options.range.to * 1_000_000;
+          endTime = Number(options.range.to.format('x')) * 1_000_000;
           state = LoadingState.Done;
         }
 
@@ -62,24 +76,30 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
           {
             connected() {
               frame.addField({ name: 'time', type: FieldType.time });
-              frame.addField({ name: 'TEMP1', type: FieldType.number });
+              target.items.forEach((item: string) => {
+                frame.addField({ name: item, type: FieldType.number });
+              });
 
               subscription.perform('add', {
                 scope: 'DEFAULT',
                 token: 'password',
-                items: items,
-                start_time: options.range.from * 1_000_000,
+                items: subscriptionItems,
+                start_time: Number(options.range.from.format('x')) * 1_000_000,
                 end_time: endTime,
               });
             },
             received: (data: any) => {
               data.forEach((item: any) => {
-                frame.add({ time: item['__time'] / 1_000_000, TEMP1: item['0'] });
+                let frameData: any = { time: item['__time'] / 1_000_000 };
+                subscriptionItems.forEach(([key, index]) => {
+                  frameData[target.items[Number(index)]] = item[index];
+                });
+                frame.add(frameData);
               });
 
               subscriber.next({
                 data: [frame],
-                key: query.refId,
+                key: target.refId,
                 state: state,
               });
             },
@@ -91,10 +111,36 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
   }
 
   async testDatasource() {
-    // Implement a health check for your data source.
-    return {
-      status: 'success',
-      message: 'Success',
-    };
+    let result = {};
+    await axios
+      .post(
+        `http://${this.url}/openc3-api/api`,
+        {
+          jsonrpc: '2.0',
+          method: 'get_target_list',
+          params: [],
+          id: 1,
+          keyword_params: { scope: 'DEFAULT' },
+        },
+        {
+          headers: {
+            Authorization: this.password,
+            'Content-Type': 'application/json-rpc',
+          },
+        }
+      )
+      .then((response) => {
+        result = {
+          status: 'success',
+          message: response.statusText,
+        };
+      })
+      .catch((error) => {
+        result = {
+          status: 'error',
+          message: error.message,
+        };
+      });
+    return result;
   }
 }
