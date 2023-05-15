@@ -19,25 +19,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16'
-          cache: 'npm'
-
-      # - name: Install dependencies
-      #   run: npm ci
-
-      - name: Check types
-        run: npm run typecheck
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
+      - name: Install dependencies
+        run: yarn
       - name: Lint
-        run: npm run lint
+        run: yarn lint
       # - name: Unit tests
       #   run: npm run test:ci
       - name: Build frontend
-        run: npm run build
-
-      # - name: Start grafana docker
-      #   run: docker-compose up -d
-
-      # - name: Run e2e tests
-      #   run: npm run e2e
-
-      # - name: Stop grafana docker
-      #   run: docker-compose down
+        run: yarn build
