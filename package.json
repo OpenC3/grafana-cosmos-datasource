@@ -16,7 +16,7 @@
     "sign": "npx --yes @grafana/sign-plugin@latest"
   },
   "author": "OpenC3",
-  "license": "Apache-2.0",
+  "license": "AGPLv3",
   "devDependencies": {
     "@babel/core": "^7.16.7",
     "@grafana/e2e": "9.3.8",
