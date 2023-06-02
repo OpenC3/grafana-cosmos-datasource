@@ -2,4 +2,4 @@
 
 # COSMOS
 
-Grafana datasource plugin for [OpenC3 COSMOS](openc3.com)
+Grafana datasource plugin for [OpenC3 COSMOS](https://openc3.com).

@@ -16,12 +16,11 @@
       "large": "img/logo.svg"
     },
     "links": [],
-    "screenshots": [],
+    "screenshots": ["img/configure.png", "img/explore.png", "img/dashboard.png"],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
   "dependencies": {
-    "grafanaDependency": "^7.0.0",
-    "plugins": []
+    "grafanaDependency": ">=8.0.0"
   }
 }
