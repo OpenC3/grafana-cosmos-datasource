@@ -37,7 +37,7 @@ jobs:
         if: ${{ env.GRAFANA_API_KEY == '' }}
 
       - name: Sign plugin
-        run: yarn sign
+        run: yarn sign --rootUrls http://localhost:3000
         if: ${{ env.GRAFANA_API_KEY != '' }}
 
       - name: Get plugin metadata
