@@ -16,7 +16,11 @@
       "large": "img/logo.svg"
     },
     "links": [],
-    "screenshots": ["img/configure.png", "img/explore.png", "img/dashboard.png"],
+    "screenshots": [
+      { "name": "Configure", "path": "img/configure.png" },
+      { "name": "Explore", "path": "img/explore.png" },
+      { "name": "Dashboard", "path": "img/dashboard.png" }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
