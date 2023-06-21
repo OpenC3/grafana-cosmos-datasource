@@ -95,11 +95,11 @@ export function ConfigEditor(props: Props) {
   };
 
   const { jsonData, secureJsonFields } = options;
-  jsonData.cosmosUrl = 'http://localhost:2900';
-  jsonData.keycloakUrl = 'http://localhost:2900/auth';
-  jsonData.clientId = 'api';
-  jsonData.realm = 'openc3';
-  jsonData.scope = 'DEFAULT';
+  jsonData.cosmosUrl ||= 'http://localhost:2900';
+  jsonData.keycloakUrl ||= 'http://localhost:2900/auth';
+  jsonData.clientId ||= 'api';
+  jsonData.realm ||= 'openc3';
+  jsonData.scope ||= 'DEFAULT';
 
   return (
     <div className="gf-form-group">

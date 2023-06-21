@@ -17,6 +17,8 @@
 import {
   DataQueryRequest,
   DataQueryResponse,
+  // Needed by testDatasource in Grafana 10? See https://github.com/grafana/grafana/pull/67014
+  // TestDataSourceResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
   CircularDataFrame,
