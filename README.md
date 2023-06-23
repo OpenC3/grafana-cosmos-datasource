@@ -1,115 +1,69 @@
-# Grafana data source plugin template
+# OpenC3 COSMOS Grafana data source plugin
 
-This template is a starting point for building a Data Source Plugin for Grafana.
+This plugin allows you to directly query your [OpenC3 COSMOS](https://openc3.com/) telemetry items and create live dashboards. The plugin supports both COSMOS Open Source as well as [COSMOS Enterprise Edition](https://openc3.com/docs/enterprise/).
 
-## What are Grafana data source plugins?
+![Grafana Dashboard](img/dashboard.png)
 
-Grafana supports a wide range of data sources, including Prometheus, MySQL, and even Datadog. There’s a good chance you can already visualize metrics from the systems you have set up. In some cases, though, you already have an in-house metrics solution that you’d like to add to your Grafana dashboards. Grafana Data Source Plugins enables integrating such solutions with Grafana.
+## Installation
 
-## Getting started
+Currently the COSMOS plugin is not a signed plugin present in the Grafana plugin library. This prevents it from being used in Grafana Cloud. If you are an OpenC3 customer and would like to install COSMOS in Grafana Cloud please contact us at [support@openc3.com](mailto:support@openc3.com).
 
+The easiest way to install the plugin is to grab the latest [release](https://github.com/OpenC3/grafana-cosmos-datasource/releases), unzip it, and mount it as a volume to the Grafana instance installed via the [compose.yaml](compose.yaml).
 
-### Frontend
+Grafana also has instructions on [local plugin installation](https://grafana.com/docs/grafana/latest/administration/plugin-management/#install-plugin-on-local-grafana).
+
+## Usage
+
+Once you've restarted Grafana after installing the plugin you should be able to search for COSMOS via Add Data Source.
+
+![Add Data Source](img/add_data_source.png)
+
+Doulble click it to bring up the Data Source settings screen where you configure the COSMOS data source.
+
+![Data Source Config](img/data_source_config.png)
+
+The following settings are available:
+
+- Scope: The COSMOS [Scope](https://openc3.com/docs/enterprise/scopes) to query data from. Open Source is always 'DEFAULT' while Enterprise Edition can have multiple scopes.
+- COSMOS Root URL: Root URL to access COSMOS.
+- Keycloak Root URL: Root URL to access Keycloak. Enterprise Edition only which allows us to support external Keycloak installations.
+- Keycloak Client ID: Name of the client ID in Keycloak. Enterprise Edition only which allows us to support external Keycloak installations.
+- Keycloak Realm: Name of the realm in Keycloak. Enterprise Edition only which allows us to support external Keycloak installations.
+- Username: Name of the COSMOS user. Open Source only has one user so this field should be blank. Enterprise Edition should enter the username of a valid Keycloak user.
+- Password: User password. Open Source should enter the default user password created when COSMOS was installed. Enterprise Edition should enter the password for the given username.
+
+Once you have configured the plugin click Save & Test and you should see the green OK checkbox. Then click Explore to start building queries.
+
+![Query](img/query.png)
+
+Building a query is very similar to using COSMOS [Telemetry Grapher](https://openc3.com/docs/v5/tlm-grapher) or [Data Extractor](https://openc3.com/docs/v5/data-extractor). You select the Target, Packet, and Item you want to add to the graph. The Value Type is either Converted or Raw as graphing strings created from Formatted or With Units doesn't make sense. The Decom / Reduced field allows you to use the COSMOS data reduction feature by selecting REDUCED_MINUTE, REDUCED_HOUR, or REDUCED_DAY data. When one of the REDUCED data options are chosen the Reduced Type should also be selected to determine how to diplay the reduced data. Note that Reduced Type is not used when DECOM is selected. Reduced data is highly recommended when doing queries over large time spans.
+
+Click Add Item to add the current item to the list of telemetry points that will be added to the graph. In the above example, I have added the 4 TEMP telemetry items from the COSMOS Demo. To remove an item simply click it.
+
+Once you've added all your items, click the Blue refresh button to cause Grafana to execute the query and produce a sample graph.
+
+![Run Query](img/run_query.png)
+
+At this point you can click Add to Dashboard and create dashboards in the usual manner.
+
+## Developers
+
+Developing the COSMOS Data Source plugin is very similar to installing it. You install the dependencies and run it in development mode which re-compiles any updates live. The Docker compose file mounts in the local development build directory and sets various options in the .config/Dockerfile to allow for live development.
 
 1. Install dependencies
 
    ```bash
-   npm run install
+   yarn
    ```
 
 2. Build plugin in development mode and run in watch mode
 
    ```bash
-   npm run dev
+   yarn dev
    ```
 
-3. Build plugin in production mode
+3. Spin up a Grafana instance and mount the plugin inside it (using Docker)
 
    ```bash
-   npm run build
+   docker compose -f compose-dev.yaml up
    ```
-
-4. Run the tests (using Jest)
-
-   ```bash
-   # Runs the tests and watches for changes, requires git init first
-   npm run test
-
-   # Exits after running all the tests
-   npm run test:ci
-   ```
-
-5. Spin up a Grafana instance and run the plugin inside it (using Docker)
-
-   ```bash
-   npm run server
-   ```
-
-6. Run the E2E tests (using Cypress)
-
-   ```bash
-   # Spins up a Grafana instance first that we tests against
-   npm run server
-
-   # Starts the tests
-   npm run e2e
-   ```
-
-7. Run the linter
-
-   ```bash
-   npm run lint
-
-   # or
-
-   npm run lint:fix
-   ```
-
-
-# Distributing your plugin
-
-When distributing a Grafana plugin either within the community or privately the plugin must be signed so the Grafana application can verify its authenticity. This can be done with the `@grafana/sign-plugin` package.
-
-_Note: It's not necessary to sign a plugin during development. The docker development environment that is scaffolded with `@grafana/create-plugin` caters for running the plugin without a signature._
-
-## Initial steps
-
-Before signing a plugin please read the Grafana [plugin publishing and signing criteria](https://grafana.com/docs/grafana/latest/developers/plugins/publishing-and-signing-criteria/) documentation carefully.
-
-`@grafana/create-plugin` has added the necessary commands and workflows to make signing and distributing a plugin via the grafana plugins catalog as straightforward as possible.
-
-Before signing a plugin for the first time please consult the Grafana [plugin signature levels](https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/#plugin-signature-levels) documentation to understand the differences between the types of signature level.
-
-1. Create a [Grafana Cloud account](https://grafana.com/signup).
-2. Make sure that the first part of the plugin ID matches the slug of your Grafana Cloud account.
-   - _You can find the plugin ID in the plugin.json file inside your plugin directory. For example, if your account slug is `acmecorp`, you need to prefix the plugin ID with `acmecorp-`._
-3. Create a Grafana Cloud API key with the `PluginPublisher` role.
-4. Keep a record of this API key as it will be required for signing a plugin
-
-## Signing a plugin
-
-### Using Github actions release workflow
-
-If the plugin is using the github actions supplied with `@grafana/create-plugin` signing a plugin is included out of the box. The [release workflow](./.github/workflows/release.yml) can prepare everything to make submitting your plugin to Grafana as easy as possible. Before being able to sign the plugin however a secret needs adding to the Github repository.
-
-1. Please navigate to "settings > secrets > actions" within your repo to create secrets.
-2. Click "New repository secret"
-3. Name the secret "GRAFANA_API_KEY"
-4. Paste your Grafana Cloud API key in the Secret field
-5. Click "Add secret"
-
-#### Push a version tag
-
-To trigger the workflow we need to push a version tag to github. This can be achieved with the following steps:
-
-1. Run `npm version <major|minor|patch>`
-2. Run `git push origin main --follow-tags`
-
-
-## Learn more
-
-Below you can find source code for existing app plugins and other related documentation.
-
-- [Basic data source plugin example](https://github.com/grafana/grafana-plugin-examples/tree/master/examples/datasource-basic#readme)
-- [Plugin.json documentation](https://grafana.com/docs/grafana/latest/developers/plugins/metadata/)
-- [How to sign a plugin?](https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/)

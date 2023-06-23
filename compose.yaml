@@ -1,0 +1,18 @@
+version: '3.0'
+
+services:
+  grafana:
+    # Currently we do not support Grafana 10
+    image: grafana/grafana-enterprise:9.5.5
+    container_name: grafana
+    restart: unless-stopped
+    # if you are running as root then set it to 0
+    # else find the right id with the id -u command
+    # user: '0'
+    ports:
+      - '3000:3000'
+    # adding the mount volume point which we create earlier
+    volumes:
+      - ./openc3-cosmos-datasource:/var/lib/grafana/plugins/openc3-cosmos-datasource
+    environment:
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: "openc3-cosmos-datasource"
