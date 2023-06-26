@@ -58,8 +58,6 @@ jobs:
           echo "archive=${GRAFANA_PLUGIN_ARTIFACT}" >> $GITHUB_OUTPUT
           echo "archive-checksum=${GRAFANA_PLUGIN_ARTIFACT_CHECKSUM}" >> $GITHUB_OUTPUT
 
-          echo "github-tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
-
       - name: Package plugin
         id: package-plugin
         run: |

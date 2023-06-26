@@ -12,6 +12,12 @@ The easiest way to install the plugin is to grab the latest [release](https://gi
 
 Grafana also has instructions on [local plugin installation](https://grafana.com/docs/grafana/latest/administration/plugin-management/#install-plugin-on-local-grafana).
 
+### COSMOS Enterprise
+
+If you are a COSMOS Enterprise Customer, you must ensure your Keycloak configuration will allow allow Grafana to connect using the username and password. Confirm that under the OpenC3 Realm, Clients, 'api', the 'Web origins' setting is '\*'.
+
+![Web origins](img/web_origins.png)
+
 ## Usage
 
 Once you've restarted Grafana after installing the plugin you should be able to search for COSMOS via Add Data Source.
